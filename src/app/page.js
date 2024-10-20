@@ -1,138 +1,130 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { Eye, Users, FileText } from "lucide-react";
-import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { Upload, Send } from "lucide-react";
 
-const JobsTablePage = () => {
-    const [jobs, setJobs] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const router = useRouter();
+const EmailSendPage = () => {
+    const [department, setDepartment] = useState("");
+    const [file, setFile] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [alert, setAlert] = useState(null);
 
-    useEffect(() => {
-        // Simulate fetching jobs from an API
-        const fetchJobs = async () => {
-            setIsLoading(true);
-            try {
-                // Replace this with actual API call
-                await new Promise((resolve) => setTimeout(resolve, 1000));
-                const mockJobs = [
-                    {
-                        id: 1,
-                        fileName: "employees.csv",
-                        department: "HR",
-                        viewCount: 15,
-                        totalCount: 50,
-                    },
-                    {
-                        id: 2,
-                        fileName: "customers.csv",
-                        department: "Sales",
-                        viewCount: 30,
-                        totalCount: 100,
-                    },
-                    {
-                        id: 3,
-                        fileName: "inventory.csv",
-                        department: "Logistics",
-                        viewCount: 5,
-                        totalCount: 75,
-                    },
-                ];
-                setJobs(mockJobs);
-            } catch (error) {
-                console.error("Failed to fetch jobs:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+    const handleFileChange = (event) => {
+        const selectedFile = event.target.files[0];
+        setFile(selectedFile);
+    };
 
-        fetchJobs();
-    }, []);
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        setIsLoading(true);
+        setAlert(null);
 
-    const handleViewReport = (jobId) => {
-        router.push(`/jobs/${jobId}`);
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate API call
+            setAlert({
+                type: "success",
+                message: `Emails sent to ${department} department.`,
+            });
+        } catch (error) {
+            setAlert({
+                type: "error",
+                message: "Failed to send emails. Please try again.",
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
-        <div className="container mx-auto p-4">
+        <div className="container mx-auto p-4 max-w-md">
             <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
-                Jobs Dashboard
+                Send Emails
             </h1>
-            {isLoading ? (
-                <p className="text-gray-700 dark:text-gray-300">
-                    Loading jobs...
-                </p>
-            ) : (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
-                        <thead className="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Job ID
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    File Name
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Department
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    View Count
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Total Count
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
-                            {jobs.map((job) => (
-                                <tr
-                                    key={job.id}
-                                    className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                                >
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        {job.id}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                        {job.fileName}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                        {job.department}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                        <span className="flex items-center">
-                                            <Eye className="mr-2 h-4 w-4" />
-                                            {job.viewCount}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                        <span className="flex items-center">
-                                            <Users className="mr-2 h-4 w-4" />
-                                            {job.totalCount}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                        <button
-                                            onClick={() =>
-                                                handleViewReport(job.id)
-                                            }
-                                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 flex items-center"
-                                        >
-                                            <FileText className="mr-2 h-4 w-4" />
-                                            View Report
-                                        </button>{" "}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label
+                        htmlFor="department"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                    >
+                        Department
+                    </label>
+                    <input
+                        id="department"
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm 
+                         bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                         dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                        placeholder="Enter department name or 'all'"
+                        value={department}
+                        onChange={(e) => setDepartment(e.target.value)}
+                        required
+                    />
+                </div>
+                <div>
+                    <label
+                        htmlFor="file"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                    >
+                        Upload CSV File
+                    </label>
+                    <div className="flex items-center space-x-2">
+                        <input
+                            id="file"
+                            type="file"
+                            // accept=".csv"
+                            accept="csv"
+                            onChange={handleFileChange}
+                            required
+                            className="hidden"
+                        />
+                        <button
+                            type="button"
+                            className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm font-medium 
+                           text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 
+                           hover:bg-gray-50 dark:hover:bg-gray-700 
+                           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                            onClick={() =>
+                                document.getElementById("file").click()
+                            }
+                        >
+                            <Upload className="inline-block mr-2 h-4 w-4" />{" "}
+                            Choose File
+                        </button>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                            {file ? file.name : "No file chosen"}
+                        </span>
+                    </div>
+                </div>
+                <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium 
+                        text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600
+                        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-blue-400
+                        ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                    {isLoading ? (
+                        "Processing..."
+                    ) : (
+                        <>
+                            <Send className="mr-2 h-4 w-4" /> Send Emails
+                        </>
+                    )}
+                </button>
+            </form>
+            {alert && (
+                <div
+                    className={`mt-4 p-4 rounded-md ${
+                        alert.type === "error"
+                            ? "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-100"
+                            : "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-100"
+                    }`}
+                >
+                    <p className="text-sm font-medium">{alert.message}</p>
                 </div>
             )}
         </div>
     );
 };
 
-export default JobsTablePage;
+export default EmailSendPage;

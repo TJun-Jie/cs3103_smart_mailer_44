@@ -3,7 +3,7 @@
 
 export async function sendEmails(formData) {
     try {
-        const response = await fetch(`${process.env.API_URL}/send-emails`, {
+        const response = await fetch(`${process.env.API_URL}/api/send-emails`, {
             method: "POST",
             body: formData,
             // Don't need to specify headers as FormData sets them automatically
@@ -16,19 +16,9 @@ export async function sendEmails(formData) {
 
         const data = await response.json();
 
-        // Calculate total emails sent
-        const totalSent = Object.values(data.sentCount).reduce(
-            (a, b) => a + b,
-            0
-        );
-
         return {
             success: true,
-            message: `Successfully sent ${totalSent} emails${
-                data.errors ? ` (${data.errors.length} failures)` : ""
-            }`,
-            sentCount: data.sentCount,
-            errors: data.errors,
+            message: data.message || `Emails sent to ${data.total} recipients`,
         };
     } catch (error) {
         return {

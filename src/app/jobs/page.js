@@ -1,56 +1,87 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Eye, Users, FileText } from "lucide-react";
+import {
+    Eye,
+    Users,
+    FileText,
+    Loader2,
+    CheckCircle2,
+    XCircle,
+    AlertCircle,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getJobs } from "../actions/jobs";
 
 const JobsTablePage = () => {
     const [jobs, setJobs] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
     const router = useRouter();
 
     useEffect(() => {
-        // Simulate fetching jobs from an API
-        const fetchJobs = async () => {
-            setIsLoading(true);
-            try {
-                // Replace this with actual API call
-                await new Promise((resolve) => setTimeout(resolve, 1000));
-                const mockJobs = [
-                    {
-                        id: 1,
-                        fileName: "employees.csv",
-                        department: "HR",
-                        viewCount: 15,
-                        totalCount: 50,
-                    },
-                    {
-                        id: 2,
-                        fileName: "customers.csv",
-                        department: "Sales",
-                        viewCount: 30,
-                        totalCount: 100,
-                    },
-                    {
-                        id: 3,
-                        fileName: "inventory.csv",
-                        department: "Logistics",
-                        viewCount: 5,
-                        totalCount: 75,
-                    },
-                ];
-                setJobs(mockJobs);
-            } catch (error) {
-                console.error("Failed to fetch jobs:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
         fetchJobs();
+        const interval = setInterval(fetchJobs, 30000); // Refresh every 30 seconds
+        return () => clearInterval(interval);
     }, []);
 
-    const handleViewReport = (jobId) => {
-        router.push(`/jobs/${jobId}`);
+    const fetchJobs = async () => {
+        setIsLoading(true);
+        try {
+            const result = await getJobs();
+            if (result.success) {
+                setJobs(result.data);
+                setError(null);
+            } else {
+                setError(result.message);
+            }
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const getStatusBadge = (status) => {
+        const baseClasses =
+            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
+        switch (status) {
+            case "completed":
+                return (
+                    <span
+                        className={`${baseClasses} bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100`}
+                    >
+                        <CheckCircle2 className="mr-1 h-3 w-3" />
+                        Completed
+                    </span>
+                );
+            case "processing":
+                return (
+                    <span
+                        className={`${baseClasses} bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100`}
+                    >
+                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                        Processing
+                    </span>
+                );
+            case "failed":
+                return (
+                    <span
+                        className={`${baseClasses} bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100`}
+                    >
+                        <XCircle className="mr-1 h-3 w-3" />
+                        Failed
+                    </span>
+                );
+            default:
+                return (
+                    <span
+                        className={`${baseClasses} bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100`}
+                    >
+                        <AlertCircle className="mr-1 h-3 w-3" />
+                        {status}
+                    </span>
+                );
+        }
     };
 
     return (
@@ -59,9 +90,9 @@ const JobsTablePage = () => {
                 Jobs Dashboard
             </h1>
             {isLoading ? (
-                <p className="text-gray-700 dark:text-gray-300">
-                    Loading jobs...
-                </p>
+                <div className="flex justify-center items-center p-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-gray-500 dark:text-gray-400" />
+                </div>
             ) : (
                 <div className="overflow-x-auto">
                     <table className="min-w-full bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
@@ -77,10 +108,13 @@ const JobsTablePage = () => {
                                     Department
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    View Count
+                                    Status
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Total Count
+                                    Progress
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Created At
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                     Actions
@@ -90,40 +124,63 @@ const JobsTablePage = () => {
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
                             {jobs.map((job) => (
                                 <tr
-                                    key={job.id}
+                                    key={job.jobId}
                                     className="hover:bg-gray-50 dark:hover:bg-gray-700"
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        {job.id}
+                                        {job.jobId}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                                         {job.fileName}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                        {job.department}
+                                        {job.departmentCode === "all"
+                                            ? "All"
+                                            : job.departmentCode}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        {getStatusBadge(job.status)}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                        <span className="flex items-center">
-                                            <Eye className="mr-2 h-4 w-4" />
-                                            {job.viewCount}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                        <span className="flex items-center">
+                                        <div className="flex items-center">
                                             <Users className="mr-2 h-4 w-4" />
-                                            {job.totalCount}
-                                        </span>
+                                            <span>
+                                                {job.successCount +
+                                                    job.failureCount}{" "}
+                                                / {job.totalRecipients}
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
+                                            <div
+                                                className="bg-blue-600 dark:bg-blue-400 h-1.5 rounded-full transition-all duration-500"
+                                                style={{
+                                                    width: `${
+                                                        ((job.successCount +
+                                                            job.failureCount) /
+                                                            job.totalRecipients) *
+                                                        100
+                                                    }%`,
+                                                }}
+                                            />
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                        {new Date(
+                                            job.createdAt
+                                        ).toLocaleString()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                                         <button
                                             onClick={() =>
-                                                handleViewReport(job.id)
+                                                router.push(
+                                                    `/jobs/${job.jobId}`
+                                                )
                                             }
                                             className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 flex items-center"
                                         >
                                             <FileText className="mr-2 h-4 w-4" />
                                             View Report
-                                        </button>{" "}
+                                        </button>
                                     </td>
                                 </tr>
                             ))}

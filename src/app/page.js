@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Upload, Send } from "lucide-react";
+import { sendEmails } from "./actions/email";
 
 const EmailSendPage = () => {
     const [department, setDepartment] = useState("");
@@ -19,15 +20,21 @@ const EmailSendPage = () => {
         setAlert(null);
 
         try {
-            await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate API call
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("department", department);
+
+            const result = await sendEmails(formData);
+
             setAlert({
-                type: "success",
-                message: `Emails sent to ${department} department.`,
+                type: result.success ? "success" : "error",
+                message: result.message,
             });
         } catch (error) {
             setAlert({
                 type: "error",
-                message: "Failed to send emails. Please try again.",
+                message:
+                    error.message || "Failed to send emails. Please try again.",
             });
         } finally {
             setIsLoading(false);

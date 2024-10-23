@@ -11,6 +11,48 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getJobs } from "../actions/jobs";
+export const getStatusBadgeForJob = (status) => {
+    const baseClasses =
+        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
+    switch (status) {
+        case "completed":
+            return (
+                <span
+                    className={`${baseClasses} bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100`}
+                >
+                    <CheckCircle2 className="mr-1 h-3 w-3" />
+                    Completed
+                </span>
+            );
+        case "processing":
+            return (
+                <span
+                    className={`${baseClasses} bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100`}
+                >
+                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                    Processing
+                </span>
+            );
+        case "failed":
+            return (
+                <span
+                    className={`${baseClasses} bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100`}
+                >
+                    <XCircle className="mr-1 h-3 w-3" />
+                    Failed
+                </span>
+            );
+        default:
+            return (
+                <span
+                    className={`${baseClasses} bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100`}
+                >
+                    <AlertCircle className="mr-1 h-3 w-3" />
+                    {status}
+                </span>
+            );
+    }
+};
 
 const JobsTablePage = () => {
     const [jobs, setJobs] = useState([]);
@@ -38,49 +80,6 @@ const JobsTablePage = () => {
             setError(err.message);
         } finally {
             setIsLoading(false);
-        }
-    };
-
-    const getStatusBadge = (status) => {
-        const baseClasses =
-            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
-        switch (status) {
-            case "completed":
-                return (
-                    <span
-                        className={`${baseClasses} bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100`}
-                    >
-                        <CheckCircle2 className="mr-1 h-3 w-3" />
-                        Completed
-                    </span>
-                );
-            case "processing":
-                return (
-                    <span
-                        className={`${baseClasses} bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100`}
-                    >
-                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                        Processing
-                    </span>
-                );
-            case "failed":
-                return (
-                    <span
-                        className={`${baseClasses} bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100`}
-                    >
-                        <XCircle className="mr-1 h-3 w-3" />
-                        Failed
-                    </span>
-                );
-            default:
-                return (
-                    <span
-                        className={`${baseClasses} bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100`}
-                    >
-                        <AlertCircle className="mr-1 h-3 w-3" />
-                        {status}
-                    </span>
-                );
         }
     };
 
@@ -139,7 +138,7 @@ const JobsTablePage = () => {
                                             : job.departmentCode}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        {getStatusBadge(job.status)}
+                                        {getStatusBadgeForJob(job.status)}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                                         <div className="flex items-center">

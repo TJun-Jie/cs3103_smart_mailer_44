@@ -15,6 +15,7 @@ import {
     ArrowLeft,
 } from "lucide-react";
 import { getJobReport } from "@/app/actions/jobs";
+import { getStatusBadgeForJob } from "../page";
 
 const getStatusBadge = (status) => {
     const baseClasses =
@@ -147,7 +148,7 @@ const SingleJobReportPage = ({ params }) => {
                                 Status
                             </div>
                             <div className="mt-1">
-                                {getStatusBadge(job.status)}
+                                {getStatusBadgeForJob(job.status)}
                             </div>
                         </div>
 

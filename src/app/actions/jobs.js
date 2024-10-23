@@ -3,6 +3,7 @@
 
 export async function getJobs(options = {}) {
     try {
+        console.log("process.env.API_URL", process.env.API_URL);
         // Build URL with query parameters if needed
         let url = `${process.env.API_URL}/api/jobs`;
 
